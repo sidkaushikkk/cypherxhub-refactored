@@ -399,7 +399,7 @@ a:hover {
 /* Welcome Banner Section */
 .welcome-hero {
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: 1fr;
     gap: 2rem;
     margin-bottom: 2rem;
     align-items: center;
@@ -411,8 +411,13 @@ a:hover {
     }
 }
 
+.welcome-text {
+    width: 100%;
+    text-align: center;
+}
+
 .welcome-text h1 {
-    font-size: 2.75rem;
+    font-size: 3.75rem;
     font-weight: 800;
     line-height: 1.15;
     margin-bottom: 0.75rem;
@@ -429,7 +434,6 @@ a:hover {
     color: var(--text-secondary);
     font-size: 1.05rem;
     margin-bottom: 1.5rem;
-    max-width: 540px;
     line-height: 1.6;
 }
 
@@ -437,6 +441,7 @@ a:hover {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 /* Status Card Preview Box */
