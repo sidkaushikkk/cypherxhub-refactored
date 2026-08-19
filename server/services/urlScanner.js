@@ -24,10 +24,17 @@ try {
     if (fs.existsSync(actualPath)) {
         const data = fs.readFileSync(actualPath, 'utf8');
         phishingDb = JSON.parse(data);
-        logger.info(`Loaded ${phishingDb.length} phishing domain entries into URL Scanner.`);
+    } else {
+        phishingDb = require('../../phishing-db.json');
     }
+    logger.info(`Loaded ${phishingDb.length} phishing domain entries into URL Scanner.`);
 } catch (err) {
-    logger.error('Failed to load phishing-db.json', { error: err.message });
+    try {
+        phishingDb = require('../../phishing-db.json');
+        logger.info(`Loaded ${phishingDb.length} phishing domain entries via fallback.`);
+    } catch (fallbackErr) {
+        logger.error('Failed to load phishing-db.json', { error: err.message });
+    }
 }
 
 const KEYWORDS = [

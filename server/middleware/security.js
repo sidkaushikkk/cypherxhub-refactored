@@ -18,7 +18,13 @@ function setupSecurity(app) {
             // Allow requests with no origin (mobile apps, curl, local static files)
             if (!origin) return callback(null, true);
             
-            if (config.nodeEnv === 'development' || origin === config.frontendUrl || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+            if (
+                config.nodeEnv === 'development' || 
+                origin === config.frontendUrl || 
+                origin.includes('localhost') || 
+                origin.includes('127.0.0.1') ||
+                origin.endsWith('.vercel.app')
+            ) {
                 return callback(null, true);
             }
             
