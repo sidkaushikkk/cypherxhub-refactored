@@ -8,6 +8,7 @@ const {
     evaluateThresholds, 
     breakdownByCategory 
 } = require('./metrics');
+const { createBalancedDataset, createDatasetSplits } = require('./ingestion/dataQuality');
 
 /**
  * Load and validate JSON dataset file
@@ -38,19 +39,65 @@ function loadDataset(filePath) {
  * Run evaluation benchmark on dataset
  */
 async function runBenchmark(options = {}) {
-    const benignPath = options.benignPath || path.join(__dirname, 'datasets/benign.json');
-    const maliciousPath = options.maliciousPath || path.join(__dirname, 'datasets/malicious.json');
+    const mode = options.mode || 'real'; // 'seed' or 'real'
+    const split = options.split || 'all'; // 'all', 'development', 'validation', 'test'
+    const balanced = options.balanced !== false; // default true for 50/50 comparison
     const saveResults = options.saveResults !== false;
+
+    let benignPath;
+    let maliciousPath;
+    let metadataPath;
+    let datasetName;
+    let datasetType;
+
+    if (mode === 'seed') {
+        const seedBenign = path.join(__dirname, 'datasets/seed/benign.json');
+        const fallbackBenign = path.join(__dirname, 'datasets/benign.json');
+        benignPath = fs.existsSync(seedBenign) ? seedBenign : fallbackBenign;
+
+        const seedMalicious = path.join(__dirname, 'datasets/seed/malicious.json');
+        const fallbackMalicious = path.join(__dirname, 'datasets/malicious.json');
+        maliciousPath = fs.existsSync(seedMalicious) ? seedMalicious : fallbackMalicious;
+
+        datasetName = 'CypherX Curated Seed Benchmark';
+        datasetType = 'CURATED_SEED_DATASET';
+    } else {
+        benignPath = path.join(__dirname, 'datasets/real-world/benign.json');
+        maliciousPath = path.join(__dirname, 'datasets/real-world/malicious.json');
+        metadataPath = path.join(__dirname, 'datasets/real-world/metadata.json');
+
+        datasetName = 'CypherX Real-World Security Benchmark';
+        datasetType = 'REAL_WORLD_BENCHMARK';
+    }
 
     // Load ground-truth datasets
     const benignData = loadDataset(benignPath);
     const maliciousData = loadDataset(maliciousPath);
-    const fullDataset = [...benignData, ...maliciousData];
+    let fullDataset = [...benignData, ...maliciousData];
+
+    // Load quality metadata if available
+    let datasetMetadata = null;
+    if (metadataPath && fs.existsSync(metadataPath)) {
+        datasetMetadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+    }
+
+    // Apply partition split if requested
+    if (split !== 'all' && mode === 'real') {
+        const splits = createDatasetSplits(fullDataset);
+        if (splits[split]) {
+            fullDataset = splits[split];
+        }
+    }
+
+    // Apply balancing if requested
+    if (balanced) {
+        fullDataset = createBalancedDataset(fullDataset);
+    }
 
     // Mock Google Safe Browsing to ensure 100% deterministic, hermetic benchmarking
     const originalAxiosPost = axios.post;
     axios.post = async () => ({
-        data: { matches: [] } // Deterministic clean baseline (tests local detection heuristics)
+        data: { matches: [] } // Deterministic clean baseline (evaluates local static heuristics)
     });
 
     const evaluatedResults = [];
@@ -59,7 +106,7 @@ async function runBenchmark(options = {}) {
         for (const item of fullDataset) {
             const verdict = await scanUrl(item.url, 'Evaluation Benchmark');
             
-            // Map CypherX multi-tier status to binary prediction for benchmark comparison
+            // Binary prediction mapping
             // SUSPICIOUS and DANGEROUS map to MALICIOUS
             // SAFE and UNVERIFIED map to BENIGN
             const predictedLabel = (verdict.status === 'SUSPICIOUS' || verdict.status === 'DANGEROUS') 
@@ -70,7 +117,7 @@ async function runBenchmark(options = {}) {
 
             evaluatedResults.push({
                 url: item.url,
-                category: item.category || 'uncategorized',
+                category: item.category || 'unknown',
                 source: item.source || 'UNKNOWN',
                 groundTruth: item.label,
                 predictedLabel,
@@ -97,18 +144,32 @@ async function runBenchmark(options = {}) {
     const thresholdAnalysis = evaluateThresholds(evaluatedResults, [30, 40, 50, 60, 70, 80]);
     const categoryBreakdown = breakdownByCategory(evaluatedResults);
 
-    // Extract false alarms and missed threats
-    const falsePositives = evaluatedResults.filter(r => r.groundTruth === 'BENIGN' && r.predictedLabel === 'MALICIOUS');
-    const falseNegatives = evaluatedResults.filter(r => r.groundTruth === 'MALICIOUS' && r.predictedLabel === 'BENIGN');
+    // Extract and sort errors for deep inspection
+    // False Positives: Benign flagged as Malicious (sorted by highest risk score first)
+    const falsePositives = evaluatedResults
+        .filter(r => r.groundTruth === 'BENIGN' && r.predictedLabel === 'MALICIOUS')
+        .sort((a, b) => b.riskScore - a.riskScore);
+
+    // False Negatives: Malicious missed as Benign (sorted by lowest risk score first)
+    const falseNegatives = evaluatedResults
+        .filter(r => r.groundTruth === 'MALICIOUS' && r.predictedLabel === 'BENIGN')
+        .sort((a, b) => a.riskScore - b.riskScore);
+
+    const actualBenign = evaluatedResults.filter(r => r.groundTruth === 'BENIGN').length;
+    const actualMalicious = evaluatedResults.filter(r => r.groundTruth === 'MALICIOUS').length;
 
     const benchmarkReport = {
         timestamp: new Date().toISOString(),
         datasetInfo: {
-            name: 'CypherX Curated Seed Benchmark',
-            type: 'CURATED_SEED_DATASET',
+            name: datasetName,
+            type: datasetType,
+            mode,
+            split,
+            balanced,
             totalSamples: evaluatedResults.length,
-            benignSamples: benignData.length,
-            maliciousSamples: maliciousData.length
+            benignSamples: actualBenign,
+            maliciousSamples: actualMalicious,
+            qualityReport: datasetMetadata ? datasetMetadata.qualityReport : null
         },
         confusionMatrix: cm,
         metrics,
@@ -124,8 +185,10 @@ async function runBenchmark(options = {}) {
         if (!fs.existsSync(resultsDir)) {
             fs.mkdirSync(resultsDir, { recursive: true });
         }
-        const outputPath = path.join(resultsDir, 'latest.json');
-        fs.writeFileSync(outputPath, JSON.stringify(benchmarkReport, null, 2), 'utf8');
+        
+        const fileName = mode === 'seed' ? 'seed-latest.json' : 'real-world-latest.json';
+        fs.writeFileSync(path.join(resultsDir, fileName), JSON.stringify(benchmarkReport, null, 2), 'utf8');
+        fs.writeFileSync(path.join(resultsDir, 'latest.json'), JSON.stringify(benchmarkReport, null, 2), 'utf8');
     }
 
     return benchmarkReport;
@@ -138,11 +201,28 @@ function printTerminalReport(report) {
     const { datasetInfo, confusionMatrix: cm, metrics, thresholdAnalysis, categoryBreakdown, falsePositives, falseNegatives } = report;
 
     console.log('\n══════════════════════════════════════════════════════════════');
-    console.log('             CypherX Detection Engine Benchmark                ');
+    console.log(`             ${datasetInfo.name}                `);
     console.log('══════════════════════════════════════════════════════════════\n');
 
     console.log(`Dataset:      ${datasetInfo.name} [${datasetInfo.type}]`);
+    console.log(`Config:       Mode=${datasetInfo.mode.toUpperCase()} | Split=${datasetInfo.split} | Balanced=${datasetInfo.balanced}`);
     console.log(`Total Count:  ${datasetInfo.totalSamples} samples (${datasetInfo.benignSamples} Benign, ${datasetInfo.maliciousSamples} Malicious)\n`);
+
+    if (datasetInfo.qualityReport) {
+        const qr = datasetInfo.qualityReport;
+        console.log('──────────────────────────────────────────────────────────────');
+        console.log('Data Quality & Provenance Summary:');
+        console.log(`  • Raw Imported:      ${qr.imported}`);
+        console.log(`  • Valid & Parsed:    ${qr.valid}`);
+        console.log(`  • Invalid Filtered:  ${qr.invalid}`);
+        console.log(`  • Duplicates Merged: ${qr.duplicatesRemoved}`);
+        console.log(`  • Conflicts Excluded:${qr.conflictsExcluded}`);
+        console.log(`  • Source Feeds:      ${Object.entries(qr.sourceDistribution).map(([k, v]) => `${k} (${v})`).join(', ')}`);
+        if (qr.temporalCoverage && qr.temporalCoverage.earliestDate) {
+            console.log(`  • Date Range:        ${qr.temporalCoverage.earliestDate.split('T')[0]} to ${qr.temporalCoverage.latestDate.split('T')[0]}`);
+        }
+        console.log('');
+    }
 
     console.log('──────────────────────────────────────────────────────────────');
     console.log('Confusion Matrix:');
@@ -161,7 +241,7 @@ function printTerminalReport(report) {
     console.log(`  False Negative Rate:  ${metrics.falseNegativeRate.toFixed(1)}%  (Malicious sites missed by engine)\n`);
 
     console.log('──────────────────────────────────────────────────────────────');
-    console.log('Threshold Sensitivity Analysis (Risk Score Thresholds):');
+    console.log('Threshold Sensitivity Analysis (Risk Score Cutoffs):');
     console.log('  Score Threshold │ Precision │  Recall  │ F1 Score │ (TP / FP / FN)');
     console.log('  ────────────────┼───────────┼──────────┼──────────┼───────────────');
     for (const t of thresholdAnalysis) {
@@ -184,10 +264,10 @@ function printTerminalReport(report) {
 
     if (falsePositives.length > 0) {
         console.log('──────────────────────────────────────────────────────────────');
-        console.log(`⚠️ FALSE POSITIVES (${falsePositives.length}):`);
-        for (const fp of falsePositives) {
+        console.log(`⚠️ TOP FALSE POSITIVES (${falsePositives.length} total, displaying up to 5):`);
+        for (const fp of falsePositives.slice(0, 5)) {
             console.log(`  • URL:    ${fp.url}`);
-            console.log(`    Status: ${fp.cypherxStatus} (Score: ${fp.riskScore})`);
+            console.log(`    Status: ${fp.cypherxStatus} (Score: ${fp.riskScore}) | Source: ${fp.source}`);
             console.log(`    Reasons: ${fp.reasons.join(', ')}`);
         }
         console.log('');
@@ -198,27 +278,44 @@ function printTerminalReport(report) {
 
     if (falseNegatives.length > 0) {
         console.log('──────────────────────────────────────────────────────────────');
-        console.log(`⚠️ FALSE NEGATIVES (${falseNegatives.length}):`);
-        for (const fn of falseNegatives) {
+        console.log(`⚠️ TOP FALSE NEGATIVES (${falseNegatives.length} total, displaying up to 5 lowest scores):`);
+        for (const fn of falseNegatives.slice(0, 5)) {
             console.log(`  • URL:    ${fn.url}`);
-            console.log(`    Status: ${fn.cypherxStatus} (Score: ${fn.riskScore})`);
-            console.log(`    Reasons: ${fn.reasons.join(', ') || 'No indicators detected'}`);
+            console.log(`    Status: ${fn.cypherxStatus} (Score: ${fn.riskScore}) | Source: ${fn.source} | Cat: ${fn.category}`);
+            console.log(`    Reasons: ${fn.reasons.join(', ') || 'No heuristic indicators fired'}`);
         }
         console.log('');
     } else {
         console.log('──────────────────────────────────────────────────────────────');
-        console.log('✅ FALSE NEGATIVES: 0 (All seed threat patterns detected)\n');
+        console.log('✅ FALSE NEGATIVES: 0 (All threat patterns detected)\n');
     }
 
     console.log('══════════════════════════════════════════════════════════════');
-    console.log('  Note: Results reflect CURATED_SEED_DATASET heuristics check.');
-    console.log('  Does NOT represent production-scale real-world distribution.');
+    if (datasetInfo.type === 'CURATED_SEED_DATASET') {
+        console.log('  Note: Results reflect CURATED_SEED_DATASET heuristics check.');
+    } else {
+        console.log('  Note: Results evaluate static heuristic performance on');
+        console.log('  reputable external feeds (Tranco, OpenPhish, PhishTank, URLhaus).');
+    }
     console.log('══════════════════════════════════════════════════════════════\n');
 }
 
-// Direct execution entrypoint
+// CLI argument parsing
 if (require.main === module) {
-    runBenchmark()
+    const args = process.argv.slice(2);
+    let mode = 'real';
+    let split = 'all';
+    let balanced = true;
+
+    for (const arg of args) {
+        if (arg.startsWith('--mode=')) mode = arg.split('=')[1];
+        if (arg.startsWith('--split=')) split = arg.split('=')[1];
+        if (arg === '--seed') mode = 'seed';
+        if (arg === '--real') mode = 'real';
+        if (arg === '--unbalanced') balanced = false;
+    }
+
+    runBenchmark({ mode, split, balanced })
         .then(report => {
             printTerminalReport(report);
         })

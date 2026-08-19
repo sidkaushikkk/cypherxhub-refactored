@@ -1,0 +1,152 @@
+[
+  {
+    "url": "https://evil-phishing.com/login",
+    "label": "MALICIOUS",
+    "category": "known_blacklist",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://login-secure-wallet.tk/auth",
+    "label": "MALICIOUS",
+    "category": "known_blacklist",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://netflix-billing-update.cc/payment",
+    "label": "MALICIOUS",
+    "category": "known_blacklist",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://paypa1.com/login",
+    "label": "MALICIOUS",
+    "category": "typosquatting",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://g00gle.com/verify-account",
+    "label": "MALICIOUS",
+    "category": "typosquatting",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://githab.com/signin",
+    "label": "MALICIOUS",
+    "category": "typosquatting",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://login-paypal.com/verify",
+    "label": "MALICIOUS",
+    "category": "typosquatting",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://paypal.com@evil.com/login",
+    "label": "MALICIOUS",
+    "category": "authority_userinfo_deception",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://accounts.google.com@phish-server.xyz/signin",
+    "label": "MALICIOUS",
+    "category": "authority_userinfo_deception",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://github.com@malicious-node.top/auth",
+    "label": "MALICIOUS",
+    "category": "authority_userinfo_deception",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://192.168.1.1/login",
+    "label": "MALICIOUS",
+    "category": "ip_host",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://10.0.0.1/verify-account",
+    "label": "MALICIOUS",
+    "category": "ip_host",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://198.51.100.24/bank/signin",
+    "label": "MALICIOUS",
+    "category": "ip_host",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://xn--pypal-4ve.com/account",
+    "label": "MALICIOUS",
+    "category": "punycode_homograph",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://xn--e1afmkfd.xn--p1ai/login",
+    "label": "MALICIOUS",
+    "category": "punycode_homograph",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://pаypal.com/secure-login",
+    "label": "MALICIOUS",
+    "category": "punycode_homograph",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://secure-login-update.xyz/verify",
+    "label": "MALICIOUS",
+    "category": "suspicious_tld",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://bank-account-verification.top/confirm",
+    "label": "MALICIOUS",
+    "category": "suspicious_tld",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://free-crypto-bonus.ml/claim",
+    "label": "MALICIOUS",
+    "category": "suspicious_tld",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://auth-portal.test/?redirect=http://malicious-payload.xyz/drop",
+    "label": "MALICIOUS",
+    "category": "open_redirect",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://login-service.test/?destination=http://phish-target.top/harvest",
+    "label": "MALICIOUS",
+    "category": "open_redirect",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://login.verify.account.security.banking.evil-portal.com/auth",
+    "label": "MALICIOUS",
+    "category": "excessive_subdomains",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://online-secure-banking-account-verification-service.com/login",
+    "label": "MALICIOUS",
+    "category": "credential_phishing_heuristic",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://pay-pal-security-update-alert.com/signin",
+    "label": "MALICIOUS",
+    "category": "typosquatting",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "http://appleid-confirm.info/update",
+    "label": "MALICIOUS",
+    "category": "known_blacklist",
+    "source": "CURATED_SEED_DATASET"
+  }
+]

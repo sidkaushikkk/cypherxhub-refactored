@@ -1,0 +1,56 @@
+{
+  "name": "CypherX Real-World Security Benchmark Dataset",
+  "type": "REAL_WORLD_BENCHMARK",
+  "version": "1.0.0",
+  "generatedAt": "2026-08-19T13:02:22.952Z",
+  "qualityReport": {
+    "imported": 3000,
+    "valid": 3000,
+    "invalid": 0,
+    "duplicatesRemoved": 0,
+    "conflictsExcluded": 0,
+    "cleanTotal": 3000,
+    "benignCount": 1500,
+    "maliciousCount": 1500,
+    "sourceDistribution": {
+      "tranco": 1500,
+      "phishtank": 700,
+      "openphish": 400,
+      "urlhaus": 400
+    },
+    "categoryDistribution": {
+      "search": 4,
+      "media": 200,
+      "developer": 295,
+      "technology": 16,
+      "commerce": 190,
+      "education": 191,
+      "finance": 18,
+      "social": 8,
+      "news": 12,
+      "business": 7,
+      "normal_website": 520,
+      "legitimate_login": 39,
+      "phishing": 500,
+      "typosquatting": 100,
+      "credential_phishing": 100,
+      "redirect": 100,
+      "malware": 400,
+      "scam": 300
+    },
+    "temporalCoverage": {
+      "timestampsPresent": 3000,
+      "earliestDate": "2026-06-01T00:00:00.000Z",
+      "latestDate": "2026-07-02T05:30:00.000Z",
+      "temporalSplitSupported": true
+    }
+  },
+  "splits": {
+    "isTemporal": true,
+    "developmentCount": 1800,
+    "validationCount": 600,
+    "testCount": 600
+  },
+  "conflictDetails": [],
+  "invalidDetails": []
+}
