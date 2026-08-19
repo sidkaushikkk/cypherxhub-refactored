@@ -66,54 +66,57 @@ async function scanUrl(rawUrl, source = 'URL Scanner') {
     }
 
     // Layer 4: Hostname & IP Analysis
-    if (isIpAddress(hostname)) {
+    const isIpHost = isIpAddress(hostname);
+
+    if (isIpHost) {
         indicators.push({
             ...INDICATOR_DEFINITIONS.IP_ADDRESS_HOSTNAME,
             message: `URL host '${hostname}' is a raw IP address instead of a registered domain name.`
         });
-    }
-
-    if (hostname.length > 40) {
-        indicators.push(INDICATOR_DEFINITIONS.LONG_HOSTNAME);
-    }
-
-    const hyphenCount = (hostname.match(/-/g) || []).length;
-    if (hyphenCount >= 3) {
-        indicators.push(INDICATOR_DEFINITIONS.EXCESSIVE_HYPHENS);
-    }
-
-    // Layer 5: Subdomain & TLD Analysis
-    const suspiciousTld = getSuspiciousTld(hostname);
-    if (suspiciousTld) {
-        indicators.push({
-            ...INDICATOR_DEFINITIONS.SUSPICIOUS_TLD,
-            message: `Domain uses an uncommon top-level domain (${suspiciousTld}) frequently associated with phishing.`
-        });
-    }
-
-    const subdomainParts = hostname.split('.');
-    if (subdomainParts.length >= 4) {
-        indicators.push(INDICATOR_DEFINITIONS.EXCESSIVE_SUBDOMAINS);
-    }
-
-    // Layer 6: Punycode & Homograph Unicode Analysis
-    const homographAnalysis = detectHomographUnicode(hostname);
-    if (homographAnalysis) {
-        if (homographAnalysis.isPunycode) {
-            indicators.push(INDICATOR_DEFINITIONS.PUNYCODE_DOMAIN);
+    } else {
+        // Domain-specific heuristic checks (only applied to standard domain hostnames)
+        if (hostname.length > 40) {
+            indicators.push(INDICATOR_DEFINITIONS.LONG_HOSTNAME);
         }
-        if (homographAnalysis.hasHomograph) {
-            indicators.push(INDICATOR_DEFINITIONS.HOMOGRAPH_UNICODE_CHARACTERS);
-        }
-    }
 
-    // Layer 7: Typosquatting & Brand Similarity Analysis
-    const typosquatResult = analyzeTyposquatting(hostname);
-    if (typosquatResult) {
-        indicators.push({
-            ...INDICATOR_DEFINITIONS.TYPOSQUATTING_BRAND_IMPERSONATION,
-            message: typosquatResult.message
-        });
+        const hyphenCount = (hostname.match(/-/g) || []).length;
+        if (hyphenCount >= 3) {
+            indicators.push(INDICATOR_DEFINITIONS.EXCESSIVE_HYPHENS);
+        }
+
+        // Layer 5: Subdomain & TLD Analysis
+        const suspiciousTld = getSuspiciousTld(hostname);
+        if (suspiciousTld) {
+            indicators.push({
+                ...INDICATOR_DEFINITIONS.SUSPICIOUS_TLD,
+                message: `Domain uses an uncommon top-level domain (${suspiciousTld}) frequently associated with phishing.`
+            });
+        }
+
+        const subdomainParts = hostname.split('.');
+        if (subdomainParts.length >= 4) {
+            indicators.push(INDICATOR_DEFINITIONS.EXCESSIVE_SUBDOMAINS);
+        }
+
+        // Layer 6: Punycode & Homograph Unicode Analysis
+        const homographAnalysis = detectHomographUnicode(hostname);
+        if (homographAnalysis) {
+            if (homographAnalysis.isPunycode) {
+                indicators.push(INDICATOR_DEFINITIONS.PUNYCODE_DOMAIN);
+            }
+            if (homographAnalysis.hasHomograph) {
+                indicators.push(INDICATOR_DEFINITIONS.HOMOGRAPH_UNICODE_CHARACTERS);
+            }
+        }
+
+        // Layer 7: Typosquatting & Brand Similarity Analysis
+        const typosquatResult = analyzeTyposquatting(hostname);
+        if (typosquatResult) {
+            indicators.push({
+                ...INDICATOR_DEFINITIONS.TYPOSQUATTING_BRAND_IMPERSONATION,
+                message: typosquatResult.message
+            });
+        }
     }
 
     // Layer 8: Path, Query Obfuscation & Redirect Analysis

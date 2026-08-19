@@ -31,13 +31,13 @@ const INDICATOR_DEFINITIONS = {
     IP_ADDRESS_HOSTNAME: {
         type: 'IP_ADDRESS_HOSTNAME',
         severity: SEVERITY.HIGH,
-        score: 45,
+        score: 40,
         message: 'URL uses a raw IP address host instead of a registered domain name.'
     },
     TYPOSQUATTING_BRAND_IMPERSONATION: {
         type: 'TYPOSQUATTING_BRAND_IMPERSONATION',
         severity: SEVERITY.HIGH,
-        score: 40,
+        score: 45,
         message: 'Domain closely resembles a protected brand name (typosquatting / impersonation).'
     },
     SUSPICIOUS_TLD: {
@@ -111,7 +111,7 @@ const INDICATOR_DEFINITIONS = {
     SUSPICIOUS_KEYWORD_MATCH: {
         type: 'SUSPICIOUS_KEYWORD_MATCH',
         severity: SEVERITY.LOW,
-        score: 15,
+        score: 10,
         message: 'URL contains sensitive authentication or financial keywords.'
     },
     LONG_URL_LENGTH: {

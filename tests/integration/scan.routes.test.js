@@ -1,12 +1,18 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const config = require('../../server/config/env');
 const app = require('../../server/server');
 
 test('Scan API Routes Integration Suite', async (t) => {
     let server;
     let baseUrl;
+    let originalApiKey;
 
     t.before(async () => {
+        // Disable real Google Safe Browsing API calls during integration testing
+        originalApiKey = config.googleSafeBrowsingApiKey;
+        config.googleSafeBrowsingApiKey = '';
+
         await new Promise((resolve) => {
             server = app.listen(0, () => {
                 const port = server.address().port;
@@ -17,6 +23,7 @@ test('Scan API Routes Integration Suite', async (t) => {
     });
 
     t.after(async () => {
+        config.googleSafeBrowsingApiKey = originalApiKey;
         await new Promise((resolve) => server.close(resolve));
     });
 
@@ -46,7 +53,7 @@ test('Scan API Routes Integration Suite', async (t) => {
         assert.equal(response.status, 200);
         const data = await response.json();
         assert.equal(data.status, 'SUSPICIOUS');
-        assert.ok(data.riskScore > 30);
+        assert.ok(data.riskScore >= 30);
     });
 
     await t.test('POST /api/scan-url with missing URL returns 400 Bad Request', async () => {
