@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CypherX — Smart Security Made Simple</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="cyber-grid"></div>
+    </div>
+    
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="logo">
+                <i class="fas fa-shield-halved"></i> Cypher<span>X</span>
+            </div>
+        </div>
+        <div class="menu-toggle" id="mobile-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active"><i class="fas fa-house"></i> Command Center</a></li>
+            <li><a href="scan-url.html"><i class="fas fa-link"></i> URL Scanner</a></li>
+            <li><a href="scan-qr.html"><i class="fas fa-qrcode"></i> QR Inspector</a></li>
+            <li><a href="dashboard.html"><i class="fas fa-file-code"></i> Payload Inspector</a></li>
+            <li><a href="monitor.html"><i class="fas fa-desktop"></i> Threat Monitor</a></li>
+            <li><a href="activity.html"><i class="fas fa-clock-rotate-left"></i> Activity</a></li>
+        </ul>
+    </nav>
+
+    <main class="dashboard-main">
+        <!-- Welcome Hero Section -->
+        <section class="welcome-hero">
+            <div class="welcome-text">
+                <h1>Cyber Security<span> Made Simple</span></h1>
+                <p>CypherX helps you scan URLs, QR codes and files to detect malicious threats and keep you safe online.</p>
+                <div class="welcome-actions">
+                    <a href="#quick-scan" class="btn btn-primary"><i class="fas fa-link"></i> Scan URL</a>
+                    <a href="scan-qr.html" class="btn btn-purple"><i class="fas fa-qrcode"></i> Inspect QR</a>
+                    <a href="dashboard.html" class="btn btn-teal"><i class="fas fa-cloud-arrow-up"></i> Analyze File</a>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- Segmented Quick Scan Console -->
+        <section class="quick-scan-section" id="quick-scan">
+            <div class="soc-card-header" style="border-bottom: none; margin-bottom: 12px; padding-bottom: 0;">
+                <h3><i class="fas fa-bolt"></i> Quick Scan</h3>
+            </div>
+            
+            <div class="quick-scan-tabs">
+                <button class="quick-scan-tab active" data-target="tab-url"><i class="fas fa-link"></i> URL Scanner</button>
+                <button class="quick-scan-tab" data-target="tab-qr"><i class="fas fa-qrcode"></i> QR Inspector</button>
+                <button class="quick-scan-tab" data-target="tab-file"><i class="fas fa-file"></i> Payload Inspector</button>
+            </div>
+
+            <!-- Tab 1: URL Scanner -->
+            <div class="tab-pane active" id="tab-url">
+                <form id="quick-url-form">
+                    <div class="input-group">
+                        <input type="url" id="quick-url-input" class="cyber-input" placeholder="Enter URL to scan (e.g. https://example.com)" required>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-magnifying-glass"></i> Scan URL</button>
+                    </div>
+                </form>
+                <div class="loader" id="quick-url-loader">
+                    <div class="cyber-spinner"></div>
+                    <p>Scanning link against security databases...</p>
+                </div>
+                <div id="quick-url-result-card" class="result-card"></div>
+            </div>
+
+            <!-- Tab 2: QR Scanner -->
+            <div class="tab-pane" id="tab-qr">
+                <div class="input-group" style="flex-direction: column; gap: 12px;">
+                    <div class="file-upload-wrapper">
+                        <i class="fas fa-qrcode"></i>
+                        <p>Upload QR image or drag &amp; drop here</p>
+                        <span>PNG, JPG, WEBP formats</span>
+                        <input type="file" id="qr-input" accept="image/*">
+                    </div>
+                    <div id="preview-container" style="display: none; text-align: center;">
+                        <img id="qr-preview" alt="QR Preview" style="max-width: 160px; max-height: 160px; border-radius: var(--radius-md); border: 1px solid var(--border-medium);">
+                    </div>
+                    <button id="scan-qr-btn" class="btn btn-purple" style="display: none; margin: 6px auto 0 auto;"><i class="fas fa-qrcode"></i> Inspect QR Code</button>
+                </div>
+                <div class="loader" id="qr-loader">
+                    <div class="cyber-spinner"></div>
+                    <p>Decoding QR code image...</p>
+                </div>
+                <div id="qr-decoded-text" style="display: none; margin-top: 12px; font-family: var(--font-mono); font-size: 0.85rem; padding: 10px; border: 1px solid var(--border-medium); background: var(--bg-dark); border-radius: var(--radius-sm);">
+                    <strong>Extracted URL:</strong> <span id="extracted-url"></span>
+                </div>
+                <div id="qr-result-card" class="result-card"></div>
+                <div id="qr-error-msg" style="display: none; margin-top: 12px;"></div>
+            </div>
+
+            <!-- Tab 3: File Scanner -->
+            <div class="tab-pane" id="tab-file">
+                <div class="input-group" style="flex-direction: column; gap: 12px;">
+                    <div class="file-upload-wrapper">
+                        <i class="fas fa-cloud-arrow-up"></i>
+                        <p>Upload a file or drag &amp; drop here</p>
+                        <span>Supports .exe, .bat, .vbs, .pdf, .zip</span>
+                        <input type="file" id="file-input">
+                    </div>
+                    <div id="selected-filename" style="font-size: 0.875rem; color: var(--accent-blue);"></div>
+                    <button id="scan-file-btn" class="btn btn-teal" style="display: none; margin-top: 6px;"><i class="fas fa-microscope"></i> Analyze File</button>
+                </div>
+                <div class="loader" id="file-loader">
+                    <div class="cyber-spinner"></div>
+                    <p>Analyzing file payload signatures...</p>
+                </div>
+                <div id="file-result-card" class="result-card"></div>
+            </div>
+        </section>
+
+
+        <!-- Dashboard Dual Content Grid -->
+        <section class="dashboard-content">
+            <!-- Left: Recent Activity List -->
+            <div class="glass-card">
+                <div class="soc-card-header">
+                    <h3>Recent Activity</h3>
+                    <a href="activity.html" style="font-size: 0.85rem; font-weight: 500;">View all</a>
+                </div>
+                <ul class="scan-list" id="dashboard-scan-list">
+                    <!-- Populated dynamically by script.js -->
+                </ul>
+            </div>
+
+            <!-- Right: Threat Overview Donut Chart -->
+            <div class="glass-card">
+                <div class="soc-card-header">
+                    <h3>Threat Overview</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Last 7 Days <i class="fas fa-chevron-down"></i></span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                    <div class="donut-center-info">
+                        <div class="donut-total">2,451</div>
+                        <div class="donut-label">Total</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- "How CypherX Works" 4-Step Section -->
+        <section class="how-it-works-section">
+            <h3 style="font-size: 1.25rem; font-weight: 700;">How CypherX Works</h3>
+            <div class="how-grid">
+                <div class="how-card">
+                    <div class="how-step-num">1. Submit</div>
+                    <h4>Enter URL, QR or File</h4>
+                    <p>Provide a suspicious website link, QR image or file payload to begin analysis.</p>
+                </div>
+                <div class="how-card">
+                    <div class="how-step-num">2. Analyze</div>
+                    <h4>Check Multiple Signals</h4>
+                    <p>CypherX inspects domain reputation, Google Safe Browsing, and heuristic rules.</p>
+                </div>
+                <div class="how-card">
+                    <div class="how-step-num">3. Detect</div>
+                    <h4>Identify Indicators</h4>
+                    <p>Deceptive redirects, typosquatting, and malware signatures are flagged instantly.</p>
+                </div>
+                <div class="how-card">
+                    <div class="how-step-num">4. Protect</div>
+                    <h4>Clear Recommendation</h4>
+                    <p>You get an easy-to-understand risk verdict and actionable safety advice.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <p>&copy; CypherX - Cyber threat detection web app by Sid Kaushik </p>
+    </footer>
+
+    <!-- Floating Copilot Assistant -->
+    <div class="floating-widget" id="floating-widget" title="CypherX Assistant">
+        <i class="fas fa-shield-check widget-icon"></i>
+    </div>
+    <div class="widget-panel glass-card" id="widget-panel">
+        <div class="widget-header">
+            <h4 style="font-size: 0.9rem; font-weight: 600;"><i class="fas fa-sparkles" style="color: var(--accent-blue);"></i> CypherX Assistant</h4>
+            <i class="fas fa-xmark" id="close-widget" style="cursor: pointer; color: var(--text-muted);"></i>
+        </div>
+        <div class="widget-status" style="margin-top: 6px;">
+            <span class="status-dot"></span> Ready to assist
+        </div>
+        <div style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 8px;">
+            <p>Ask a question about your scan result:</p>
+            <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+                <a href="scan-url.html" style="font-size: 0.8rem;">• Explain this scan result</a>
+                <a href="scan-url.html" style="font-size: 0.8rem;">• Why was this link flagged?</a>
+                <a href="scan-url.html" style="font-size: 0.8rem;">• What should I do next?</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

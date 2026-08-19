@@ -27,8 +27,11 @@ app.use(generalLimiter);
 app.use('/api', healthRoutes);
 app.use('/api', scanRoutes);
 
-// 6. Serve static frontend files from root directory
-app.use(express.static(__dirname + '/..'));
+const path = require('path');
+
+// 6. Serve static frontend files from public directory or root
+app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '..')));
 
 // 7. Centralized Error Handler
 app.use(errorHandler);
