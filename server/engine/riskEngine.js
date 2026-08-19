@@ -54,21 +54,26 @@ function evaluateRisk(indicatorList = [], threatIntel = {}, targetContext = {}) 
     // Cap total score strictly between 0 and 100
     const riskScore = Math.min(Math.max(Math.round(rawScore), 0), 100);
 
-    // Status classification: SAFE, SUSPICIOUS, DANGEROUS
+    // Status classification: SAFE, UNVERIFIED, SUSPICIOUS, DANGEROUS
+    const gsbStatus = threatIntel?.googleSafeBrowsing?.status;
+
     let status = 'SAFE';
-    if (hasCritical || riskScore >= 70) {
+    if (hasCritical || riskScore >= 70 || gsbStatus === 'MALICIOUS') {
         status = 'DANGEROUS';
         if (reasons.length === 0) reasons.push('Critical security risk indicators discovered.');
     } else if (hasHigh || riskScore > 25 || mediumCount >= 2) {
         status = 'SUSPICIOUS';
         if (reasons.length === 0) reasons.push('Suspicious threat patterns or domain heuristics observed.');
+    } else if (gsbStatus === 'UNAVAILABLE' || gsbStatus === 'ERROR') {
+        status = 'UNVERIFIED';
+        if (reasons.length === 0) reasons.push('No obvious local threat indicators detected, but external reputation check was unavailable.');
     } else {
         if (reasons.length === 0) reasons.push('No obvious threats detected. Target appears clean based on active checks.');
     }
 
     // Confidence classification: LOW, MEDIUM, HIGH
     let confidence = 'LOW';
-    if (hasCritical || threatIntel.googleSafeBrowsing?.status === 'MALICIOUS' || (hasHigh && mediumCount >= 1) || structuredIndicators.length >= 3) {
+    if (hasCritical || gsbStatus === 'MALICIOUS' || (hasHigh && mediumCount >= 1) || structuredIndicators.length >= 3) {
         confidence = 'HIGH';
     } else if (hasHigh || mediumCount >= 1 || riskScore > 20) {
         confidence = 'MEDIUM';
@@ -80,6 +85,8 @@ function evaluateRisk(indicatorList = [], threatIntel = {}, targetContext = {}) 
         recommendation = 'DO NOT ACCESS OR EXECUTE: Target matches known malware signatures, phishing blacklists, or deceptive payload structures.';
     } else if (status === 'SUSPICIOUS') {
         recommendation = 'PROCEED WITH CAUTION: Target exhibits suspicious evasion or domain patterns. Verify destination identity before entering credentials.';
+    } else if (status === 'UNVERIFIED') {
+        recommendation = 'UNVERIFIED VERDICT: Target has no obvious local threat indicators, but external threat intelligence was unavailable for full verification.';
     } else {
         recommendation = 'CLEAN VERDICT: Target passed threat heuristics and threat intelligence evaluation. No suspicious indicators detected.';
     }

@@ -1,0 +1,152 @@
+[
+  {
+    "url": "https://www.google.com",
+    "label": "BENIGN",
+    "category": "normal_website",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://github.com",
+    "label": "BENIGN",
+    "category": "normal_website",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Main_Page",
+    "label": "BENIGN",
+    "category": "normal_website",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://stackoverflow.com/questions",
+    "label": "BENIGN",
+    "category": "normal_website",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://developer.mozilla.org/en-US/",
+    "label": "BENIGN",
+    "category": "normal_website",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://github.com/login",
+    "label": "BENIGN",
+    "category": "legitimate_login",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://accounts.google.com/signin",
+    "label": "BENIGN",
+    "category": "legitimate_login",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://www.paypal.com/signin",
+    "label": "BENIGN",
+    "category": "legitimate_login",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://login.microsoftonline.com/",
+    "label": "BENIGN",
+    "category": "legitimate_login",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://appleid.apple.com/sign-in",
+    "label": "BENIGN",
+    "category": "legitimate_login",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://www.paypal.com/myaccount/money",
+    "label": "BENIGN",
+    "category": "legitimate_payment",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://stripe.com/payments",
+    "label": "BENIGN",
+    "category": "legitimate_payment",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://checkout.stripe.com/pay",
+    "label": "BENIGN",
+    "category": "legitimate_payment",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://www.amazon.com/dp/B08N5WRWNW?ref_=nav_signin&th=1",
+    "label": "BENIGN",
+    "category": "query_parameters",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://github.com/search?q=cybersecurity+risk+engine&type=repositories",
+    "label": "BENIGN",
+    "category": "query_parameters",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://www.google.com/search?q=cypherx+security&oq=cypherx",
+    "label": "BENIGN",
+    "category": "query_parameters",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://github.com/settings/security",
+    "label": "BENIGN",
+    "category": "security_keywords",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://support.google.com/accounts/answer/46526?hl=en",
+    "label": "BENIGN",
+    "category": "security_keywords",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://stripe.com/docs/security",
+    "label": "BENIGN",
+    "category": "security_keywords",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://help.netflix.com/en/node/100627",
+    "label": "BENIGN",
+    "category": "security_keywords",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://my-company-portal.example.com/dashboard",
+    "label": "BENIGN",
+    "category": "developer_urls",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://developer-tech-docs.org/guides/getting-started",
+    "label": "BENIGN",
+    "category": "developer_urls",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://news.ycombinator.com/item?id=25000000",
+    "label": "BENIGN",
+    "category": "normal_website",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://reddit.com/r/cybersecurity",
+    "label": "BENIGN",
+    "category": "normal_website",
+    "source": "CURATED_SEED_DATASET"
+  },
+  {
+    "url": "https://docs.github.com/en/rest/quickstart",
+    "label": "BENIGN",
+    "category": "developer_urls",
+    "source": "CURATED_SEED_DATASET"
+  }
+]
