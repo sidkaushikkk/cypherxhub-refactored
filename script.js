@@ -1,4 +1,4 @@
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:' || !window.location.hostname;
 const BASE_URL = isLocal ? 'http://localhost:3000' : '';
 const API_URL = `${BASE_URL}/api/scan-url`;
 const FILE_API_URL = `${BASE_URL}/api/scan-file`;
@@ -481,18 +481,34 @@ function updateResultCard(prefix, status, reasons, score, sha256) {
     if (!card) return;
 
     let reasonsArray = Array.isArray(reasons) ? reasons : [reasons];
+    const isError = status === 'ERROR';
     card.className = `result-card ${status.toLowerCase()}`;
 
-    let iconClass = status === 'SAFE' ? 'fa-circle-check' : (status === 'SUSPICIOUS' ? 'fa-triangle-exclamation' : 'fa-circle-xmark');
-    let statusTitle = status === 'SAFE' ? 'SAFE' : (status === 'SUSPICIOUS' ? 'SUSPICIOUS' : 'DANGEROUS');
+    let iconClass = status === 'SAFE' 
+        ? 'fa-circle-check' 
+        : (status === 'SUSPICIOUS' 
+            ? 'fa-triangle-exclamation' 
+            : (isError ? 'fa-triangle-exclamation' : 'fa-circle-xmark'));
+
+    let statusTitle = status === 'SAFE' 
+        ? 'SAFE' 
+        : (status === 'SUSPICIOUS' 
+            ? 'SUSPICIOUS' 
+            : (isError ? 'UNABLE TO SCAN' : 'DANGEROUS'));
     
     let recommendationText = status === 'SAFE' 
         ? 'This URL or file passed security checks. No obvious threat indicators were found.'
         : (status === 'SUSPICIOUS'
             ? 'Proceed with caution. CypherX identified suspicious keywords or unusual domain patterns.'
-            : 'Do not open this link or file. It matches known phishing blacklists or malicious software patterns.');
+            : (isError 
+                ? 'Could not complete security analysis. Please verify your connection and ensure the CypherX backend server is running.' 
+                : 'Do not open this link or file. It matches known phishing blacklists or malicious software patterns.'));
 
     let shaHtml = sha256 ? `<div style="font-family: var(--font-mono); font-size: 0.775rem; color: var(--text-secondary); margin-bottom: 10px;">SHA-256: ${sha256}</div>` : '';
+    let scoreDisplay = isError ? '-- / 100' : `${score} / 100`;
+    let bodyHeader = status === 'SAFE' 
+        ? 'Security Analysis Findings:' 
+        : (isError ? 'System Error Details:' : 'Why CypherX flagged this:');
 
     card.innerHTML = `
         <div class="result-header">
@@ -503,13 +519,13 @@ function updateResultCard(prefix, status, reasons, score, sha256) {
                     <div style="font-size: 0.85rem; color: var(--text-secondary);">Security Analysis Result</div>
                 </div>
             </div>
-            <div class="risk-score-pill">Risk Score: ${score} / 100</div>
+            <div class="risk-score-pill">Risk Score: ${scoreDisplay}</div>
         </div>
 
         ${shaHtml}
 
         <div class="result-body">
-            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 6px;">${status === 'SAFE' ? 'Security Analysis Findings:' : 'Why CypherX flagged this:'}</div>
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 6px;">${bodyHeader}</div>
             <ul class="result-reason-list">
                 ${reasonsArray.map(reason => `
                     <li class="result-reason-item">
