@@ -509,7 +509,7 @@ function updateResultCard(prefix, status, reasons, score, sha256) {
         ${shaHtml}
 
         <div class="result-body">
-            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 6px;">Why CypherX flagged this:</div>
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 6px;">${status === 'SAFE' ? 'Security Analysis Findings:' : 'Why CypherX flagged this:'}</div>
             <ul class="result-reason-list">
                 ${reasonsArray.map(reason => `
                     <li class="result-reason-item">

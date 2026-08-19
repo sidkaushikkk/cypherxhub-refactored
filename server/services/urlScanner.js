@@ -8,7 +8,7 @@ const {
     analyzeQueryParameters, 
     countPercentEncodings 
 } = require('../utils/url');
-const { analyzeTyposquatting } = require('../utils/typosquatting');
+const { analyzeTyposquatting, isOfficialBrandDomain } = require('../utils/typosquatting');
 const { checkGoogleSafeBrowsing } = require('./safeBrowsing');
 const { INDICATOR_DEFINITIONS } = require('../engine/indicators');
 const { evaluateRisk } = require('../engine/riskEngine');
@@ -67,6 +67,7 @@ async function scanUrl(rawUrl, source = 'URL Scanner') {
 
     // Layer 4: Hostname & IP Analysis
     const isIpHost = isIpAddress(hostname);
+    const isOfficialBrand = isOfficialBrandDomain(hostname);
 
     if (isIpHost) {
         indicators.push({
@@ -140,14 +141,16 @@ async function scanUrl(rawUrl, source = 'URL Scanner') {
         indicators.push(INDICATOR_DEFINITIONS.EXCESSIVE_PERCENT_ENCODING);
     }
 
-    // Suspicious Security Keywords
-    const fullPathStr = (hostname + pathname + search).toLowerCase();
-    const foundKeywords = KEYWORDS.filter(kw => fullPathStr.includes(kw));
-    if (foundKeywords.length > 0) {
-        indicators.push({
-            ...INDICATOR_DEFINITIONS.SUSPICIOUS_KEYWORD_MATCH,
-            message: `URL path contains security-sensitive keywords: ${foundKeywords.slice(0, 4).join(', ')}.`
-        });
+    // Suspicious Security Keywords (skip path keyword alerts on official brand websites)
+    if (!isOfficialBrand) {
+        const fullPathStr = (hostname + pathname + search).toLowerCase();
+        const foundKeywords = KEYWORDS.filter(kw => fullPathStr.includes(kw));
+        if (foundKeywords.length > 0) {
+            indicators.push({
+                ...INDICATOR_DEFINITIONS.SUSPICIOUS_KEYWORD_MATCH,
+                message: `URL path contains security-sensitive keywords: ${foundKeywords.slice(0, 4).join(', ')}.`
+            });
+        }
     }
 
     if (normalizedUrl.length > 75) {

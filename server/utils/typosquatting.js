@@ -40,6 +40,20 @@ const CHAR_SUBS = {
 };
 
 /**
+ * Check if hostname belongs to an official trusted brand domain or subdomain
+ */
+function isOfficialBrandDomain(hostname) {
+    if (!hostname || typeof hostname !== 'string') return false;
+    const lowerHost = hostname.toLowerCase();
+    for (const brand of BRAND_CATALOG) {
+        if (lowerHost === brand.domain || lowerHost.endsWith('.' + brand.domain)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Calculate Levenshtein edit distance between two strings
  */
 function calculateLevenshteinDistance(str1, str2) {
@@ -113,17 +127,17 @@ function analyzeTyposquatting(hostname) {
     if (!hostname || typeof hostname !== 'string') return null;
 
     const lowerHost = hostname.toLowerCase();
-    const sld = extractBaseSld(lowerHost);
 
+    // Exact match or official subdomain of a brand is NOT typosquatting
+    if (isOfficialBrandDomain(lowerHost)) {
+        return null;
+    }
+
+    const sld = extractBaseSld(lowerHost);
     if (!sld || sld.length < 3) return null;
 
     for (const brand of BRAND_CATALOG) {
         const brandName = brand.name;
-        
-        // Exact match with official brand domain (e.g. paypal.com) is NOT typosquatting
-        if (lowerHost === brand.domain || lowerHost.endsWith('.' + brand.domain)) {
-            continue;
-        }
 
         // 1. Direct Leetspeak / Character Substitution Check (e.g. paypa1, g00gle)
         const normalizedSld = normalizeLeetspeak(sld);
@@ -142,11 +156,6 @@ function analyzeTyposquatting(hostname) {
         const maxLength = Math.max(sld.length, brandName.length);
         const similarity = 1 - (distance / maxLength);
 
-        // Strict thresholds to prevent false positives:
-        // - SLD must be at least 4 characters
-        // - Distance must be 1 (for 4-5 char brands) or <= 2 (for >= 6 char brands)
-        // - Similarity >= 0.75
-        // - Not an exact match (distance > 0)
         const maxAllowedDistance = brandName.length <= 5 ? 1 : 2;
 
         if (distance > 0 && distance <= maxAllowedDistance && similarity >= 0.75) {
@@ -187,6 +196,7 @@ function analyzeTyposquatting(hostname) {
 
 module.exports = {
     BRAND_CATALOG,
+    isOfficialBrandDomain,
     calculateLevenshteinDistance,
     normalizeLeetspeak,
     extractBaseSld,
