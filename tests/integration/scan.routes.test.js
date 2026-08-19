@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const axios = require('axios');
 const config = require('../../server/config/env');
 const app = require('../../server/server');
 
@@ -7,11 +8,16 @@ test('Scan API Routes Integration Suite', async (t) => {
     let server;
     let baseUrl;
     let originalApiKey;
+    let originalAxiosPost;
 
     t.before(async () => {
-        // Disable real Google Safe Browsing API calls during integration testing
         originalApiKey = config.googleSafeBrowsingApiKey;
-        config.googleSafeBrowsingApiKey = '';
+        config.googleSafeBrowsingApiKey = 'test_mock_key';
+
+        originalAxiosPost = axios.post;
+        axios.post = async () => ({
+            data: { matches: [] } // Mock clean response
+        });
 
         await new Promise((resolve) => {
             server = app.listen(0, () => {
@@ -24,10 +30,11 @@ test('Scan API Routes Integration Suite', async (t) => {
 
     t.after(async () => {
         config.googleSafeBrowsingApiKey = originalApiKey;
+        axios.post = originalAxiosPost;
         await new Promise((resolve) => server.close(resolve));
     });
 
-    await t.test('POST /api/scan-url with safe URL returns 200 OK clean verdict', async () => {
+    await t.test('POST /api/scan-url with safe URL and CLEAN Safe Browsing returns 200 OK SAFE', async () => {
         const response = await fetch(`${baseUrl}/api/scan-url`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -41,6 +48,23 @@ test('Scan API Routes Integration Suite', async (t) => {
         assert.ok(Array.isArray(data.indicators));
         assert.ok(Array.isArray(data.reasons));
         assert.ok(data.recommendation);
+    });
+
+    await t.test('POST /api/scan-url with safe URL and UNAVAILABLE Safe Browsing returns UNVERIFIED', async () => {
+        config.googleSafeBrowsingApiKey = ''; // Trigger UNAVAILABLE
+
+        const response = await fetch(`${baseUrl}/api/scan-url`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: 'https://github.com', source: 'Integration Test' })
+        });
+
+        assert.equal(response.status, 200);
+        const data = await response.json();
+        assert.equal(data.status, 'UNVERIFIED');
+        assert.notEqual(data.status, 'SAFE');
+
+        config.googleSafeBrowsingApiKey = 'test_mock_key'; // Reset
     });
 
     await t.test('POST /api/scan-url with IP host returns 200 OK suspicious verdict', async () => {
