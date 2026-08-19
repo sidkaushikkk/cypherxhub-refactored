@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Monitor — CypherX</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-animation">
+        <div class="cyber-grid"></div>
+    </div>
+    
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="logo">
+                <i class="fas fa-shield-halved"></i> Cypher<span>X</span>
+            </div>
+        </div>
+        <div class="menu-toggle" id="mobile-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fas fa-house"></i> Command Center</a></li>
+            <li><a href="scan-url.html"><i class="fas fa-link"></i> URL Scanner</a></li>
+            <li><a href="scan-qr.html"><i class="fas fa-qrcode"></i> QR Inspector</a></li>
+            <li><a href="dashboard.html"><i class="fas fa-file-code"></i> Payload Inspector</a></li>
+            <li><a href="monitor.html" class="active"><i class="fas fa-desktop"></i> Threat Monitor</a></li>
+            <li><a href="activity.html"><i class="fas fa-clock-rotate-left"></i> Activity</a></li>
+        </ul>
+        <div class="nav-user-area">
+            <div class="nav-status-pill">
+                <span class="status-dot"></span> All systems operational
+            </div>
+            <div class="user-avatar">J</div>
+        </div>
+    </nav>
+
+    <main class="dashboard-main">
+        <div class="scanner-container">
+            <div class="scanner-header">
+                <h2>Live Monitor Interceptor</h2>
+                <p>Simulate visiting a link. CypherX will check the destination in real time before loading.</p>
+            </div>
+            
+            <form id="monitor-form">
+                <div class="input-group">
+                    <input type="url" id="monitor-input" class="cyber-input" placeholder="https://suspicious-login-update.xyz" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-arrow-up-right-from-square"></i> Test Intercept
+                    </button>
+                </div>
+            </form>
+
+            <div class="loader" id="monitor-loader">
+                <div class="cyber-spinner"></div>
+                <p>Checking destination link safety...</p>
+            </div>
+            
+            <div id="monitor-modal-backdrop" class="modal-backdrop" style="display: none;"></div>
+            
+            <div id="monitor-intercept-modal" class="intercept-modal" style="display: none;">
+                <i id="monitor-modal-icon" class="fas fa-triangle-exclamation warning-text" style="font-size: 2.2rem; margin-bottom: 6px;"></i>
+                <h2>Access Blocked</h2>
+                <p>CypherX Live Monitor intercepted a suspicious link.</p>
+                
+                <div style="margin: 16px 0; background: var(--bg-dark); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Risk Level:</span>
+                        <span class="scan-badge dangerous" id="monitor-status-val">DANGEROUS</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Risk Score:</span>
+                        <span style="font-weight: 700;" id="monitor-score-val">95</span> / 100
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-heading); margin-top: 6px;" id="monitor-reason-val">
+                        Domain matches known phishing blacklist.
+                    </div>
+                </div>
+
+                <div class="action-buttons" style="justify-content: center; gap: 10px;">
+                    <button id="btn-go-back" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Return to Safety
+                    </button>
+                    <button id="btn-proceed" class="btn btn-secondary" style="font-size: 0.8rem; color: var(--text-muted);">
+                        Proceed anyway
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <p>&copy; Sidhant Kaushik. CypherX Security Utility. All rights reserved.</p>
+    </footer>
+
+    <!-- Floating Widget -->
+    <div class="floating-widget" id="floating-widget" title="CypherX Assistant">
+        <i class="fas fa-shield-check widget-icon"></i>
+    </div>
+    <div class="widget-panel glass-card" id="widget-panel">
+        <div class="widget-header">
+            <h4>CypherX Assistant</h4>
+            <i class="fas fa-xmark" id="close-widget" style="cursor: pointer; color: var(--text-muted);"></i>
+        </div>
+        <div class="widget-status">
+            <span class="status-dot"></span> Ready to assist
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
