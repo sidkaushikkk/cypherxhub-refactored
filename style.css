@@ -684,6 +684,7 @@ a:hover {
 .scan-badge.safe { background: var(--status-safe-bg); color: var(--status-safe); }
 .scan-badge.suspicious { background: var(--status-warning-bg); color: var(--status-warning); }
 .scan-badge.dangerous { background: var(--status-danger-bg); color: var(--status-danger); }
+.scan-badge.unverified { background: rgba(59, 130, 246, 0.1); color: var(--accent-blue); }
 
 /* Donut Threat Chart Wrapper */
 .chart-container {
@@ -914,6 +915,16 @@ a:hover {
 .result-card.error {
     border-color: var(--status-warning-border);
     background: linear-gradient(180deg, var(--surface-elevated) 0%, rgba(245, 158, 11, 0.05) 100%);
+}
+
+.result-card.unverified {
+    border-color: var(--border-medium);
+    background: linear-gradient(180deg, var(--surface-elevated) 0%, rgba(59, 130, 246, 0.05) 100%);
+}
+
+.result-card.plain_text {
+    border-color: var(--border-medium);
+    background: var(--surface-elevated);
 }
 
 .result-header {

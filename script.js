@@ -403,6 +403,19 @@ if(fileInput && fileBtn) {
     });
 }
 
+// Helper to validate HTTP(S) URLs for QR payloads
+function isHttpUrl(str) {
+    if (!str || typeof str !== 'string') return false;
+    const trimmed = str.trim();
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) return false;
+    try {
+        const parsed = new URL(trimmed);
+        return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && !!parsed.hostname;
+    } catch {
+        return false;
+    }
+}
+
 // 5. QR Scanner Logic
 const qrInput = document.getElementById('qr-input');
 const qrPreviewContainer = document.getElementById('preview-container');
@@ -444,16 +457,26 @@ if (qrInput) {
                 }
                 const codeReader = new ZXing.BrowserQRCodeReader();
                 const result = await codeReader.decodeFromImageElement(qrPreviewImg);
-                const url = result.text;
+                const rawPayload = result.text || '';
+                const payload = rawPayload.trim();
                 
                 const extractedUrlEl = document.getElementById('extracted-url');
-                if (extractedUrlEl) extractedUrlEl.textContent = url;
+                if (extractedUrlEl) extractedUrlEl.textContent = payload;
                 if (qrDecodedText) qrDecodedText.style.display = 'block';
+
+                // If payload is plain text / non-HTTP(S), do NOT send to URL scanner
+                if (!isHttpUrl(payload)) {
+                    if (qrLoader) qrLoader.style.display = 'none';
+                    addToHistory(payload, 0, 'PLAIN_TEXT', 'QR Inspection');
+                    updateResultCard('qr', 'PLAIN_TEXT', ['Decoded QR payload is plain text / non-HTTP data, not a web URL link.'], 0, null);
+                    if (qrResultCard) qrResultCard.style.display = 'block';
+                    return;
+                }
 
                 if (qrLoader) qrLoader.style.display = 'block';
                 if (qrResultCard) qrResultCard.style.display = 'none';
                 
-                const data = await fetchUrlSafety(url, 'QR Inspection');
+                const data = await fetchUrlSafety(payload, 'QR Inspection');
                 
                 if (qrLoader) qrLoader.style.display = 'none';
                 updateResultCard('qr', data.status, data.reasons, data.riskScore, data.sha256);
@@ -482,33 +505,50 @@ function updateResultCard(prefix, status, reasons, score, sha256) {
 
     let reasonsArray = Array.isArray(reasons) ? reasons : [reasons];
     const isError = status === 'ERROR';
+    const isPlainText = status === 'PLAIN_TEXT' || status === 'INFO';
+    const isUnverified = status === 'UNVERIFIED';
+
     card.className = `result-card ${status.toLowerCase()}`;
 
     let iconClass = status === 'SAFE' 
         ? 'fa-circle-check' 
-        : (status === 'SUSPICIOUS' 
-            ? 'fa-triangle-exclamation' 
-            : (isError ? 'fa-triangle-exclamation' : 'fa-circle-xmark'));
+        : (isUnverified
+            ? 'fa-shield-halved'
+            : (status === 'SUSPICIOUS' 
+                ? 'fa-triangle-exclamation' 
+                : (isPlainText
+                    ? 'fa-font'
+                    : (isError ? 'fa-triangle-exclamation' : 'fa-circle-xmark'))));
 
     let statusTitle = status === 'SAFE' 
         ? 'SAFE' 
-        : (status === 'SUSPICIOUS' 
-            ? 'SUSPICIOUS' 
-            : (isError ? 'UNABLE TO SCAN' : 'DANGEROUS'));
+        : (isUnverified
+            ? 'UNVERIFIED'
+            : (status === 'SUSPICIOUS' 
+                ? 'SUSPICIOUS' 
+                : (isPlainText
+                    ? 'PLAIN TEXT PAYLOAD'
+                    : (isError ? 'UNABLE TO SCAN' : 'DANGEROUS'))));
     
     let recommendationText = status === 'SAFE' 
         ? 'This URL or file passed security checks. No obvious threat indicators were found.'
-        : (status === 'SUSPICIOUS'
-            ? 'Proceed with caution. CypherX identified suspicious keywords or unusual domain patterns.'
-            : (isError 
-                ? 'Could not complete security analysis. Please verify your connection and ensure the CypherX backend server is running.' 
-                : 'Do not open this link or file. It matches known phishing blacklists or malicious software patterns.'));
+        : (isUnverified
+            ? 'Target passed local heuristics, but external threat intelligence was unavailable for full verification.'
+            : (status === 'SUSPICIOUS'
+                ? 'Proceed with caution. CypherX identified suspicious keywords or unusual domain patterns.'
+                : (isPlainText
+                    ? 'The decoded QR code contains raw text or non-web data. It is not an active web link.'
+                    : (isError 
+                        ? 'Could not complete security analysis. Please verify your connection and ensure the CypherX backend server is running.' 
+                        : 'Do not open this link or file. It matches known phishing blacklists or malicious software patterns.'))));
 
     let shaHtml = sha256 ? `<div style="font-family: var(--font-mono); font-size: 0.775rem; color: var(--text-secondary); margin-bottom: 10px;">SHA-256: ${sha256}</div>` : '';
-    let scoreDisplay = isError ? '-- / 100' : `${score} / 100`;
-    let bodyHeader = status === 'SAFE' 
+    let scoreDisplay = (isError || isPlainText) ? '-- / 100' : `${score} / 100`;
+    let bodyHeader = (status === 'SAFE' || isUnverified)
         ? 'Security Analysis Findings:' 
-        : (isError ? 'System Error Details:' : 'Why CypherX flagged this:');
+        : (isPlainText
+            ? 'Decoded Content Details:'
+            : (isError ? 'System Error Details:' : 'Why CypherX flagged this:'));
 
     card.innerHTML = `
         <div class="result-header">
@@ -529,7 +569,7 @@ function updateResultCard(prefix, status, reasons, score, sha256) {
             <ul class="result-reason-list">
                 ${reasonsArray.map(reason => `
                     <li class="result-reason-item">
-                        <i class="fas ${status === 'SAFE' ? 'fa-check safe-text' : 'fa-exclamation warning-text'}"></i>
+                        <i class="fas ${status === 'SAFE' ? 'fa-check safe-text' : (isUnverified ? 'fa-shield-halved safe-text' : (isPlainText ? 'fa-info safe-text' : 'fa-exclamation warning-text'))}"></i>
                         <span>${reason}</span>
                     </li>
                 `).join('')}
